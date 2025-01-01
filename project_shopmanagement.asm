@@ -1,15 +1,27 @@
 .MODEL SMALL
-DecimalPrinter macro var1 ;limit 2 hex bytes
+DecimalPrinter macro var1 ;limit 2 hex bytes, 255 decimal
     mov al,var1
     mov ah,0
-    mov bl,10
+    mov bl,100
     div bl
     mov ch,ah
     mov cl,al
     mov dl,cl
     add dl,30h
     mov ah,2
+    int 21h 
+    mov ax,0
+    mov al,ch
+    mov bl,10
+    div bl
+    
+    mov ch,ah
+    mov cl,al
+    mov dl,cl
+    add dl,30h
+    mov ah,2
     int 21h
+    
     mov dl,ch
     add dl,30h
     mov ah,2
@@ -18,7 +30,8 @@ DecimalPrinter macro var1 ;limit 2 hex bytes
  
 .STACK 100H
 
-.DATA  
+.DATA   
+LoginWelcomeMessage db "Welcome to Shop X! Please Login to continue.$"
 spacer db " $"
 dollarendermsg db " dollars$"
 userid db 04Dh,61h,73h,74h,65h,06Dh,61h        
@@ -28,11 +41,34 @@ IDinputmsg db "User ID: $"
 passwordinput db 7 dup(?)
 passinputmsg db "Password: $"
 InvalidCredentials db "Invalid Credentials! Press any key to go back to login screen. $" 
-welcome db "Welcome Mastema! These are your options$" 
-main_menu_cash_register_msg db "Amount in cash_register: $"  
-cash_register db 56
- 
-LoginWelcomeMessage db "Welcome to Shop X! Please Login to continue.$"
+welcome db "Welcome Mastema! These are your options$"      
+;main menu strings  
+PressHashToMainMenu db "Press # to return to main menu: $"
+PressNumberToContinue db "Pick an option to continue: $"
+main_menu_cash_register_msg db "Amount in cash_register: $" 
+main_menu_viewstock db "1.) View Stock$"   
+main_menu_AddStock db "1.) Add Stock$" 
+
+; View stock page string
+viewstockstr db "This page displays stock number for each item$" 
+
+
+;
+
+;numerical data
+cash_register db 56 
+item_1_stock db 254  
+item_2_stock db 153
+item_3_stock db 123
+
+
+;item names
+item1_name db "Item 1: $"
+item2_name db "Item 2: $"  
+item3_name db "Item 3: $"
+
+
+
 .CODE 
 hashloop proc   ;produces 70 hash symbols then two spaces, decoration purpose
     mov cx,70
@@ -210,7 +246,7 @@ jmp bigbang
 
 CorrectAuth: 
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;Main menu start
 MainMenu:
 call clearscr
 call hashloop
@@ -227,6 +263,63 @@ DecimalPrinter cash_register
 mov ah,9
 lea dx, dollarendermsg
 int 21h 
+call newlinecursorzero
+mov ah,9
+lea dx, main_menu_viewstock
+int 21h  
+
+call newlinecursorzero
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Main menu option end
+call hashloop  
+mov ah,9
+lea dx,PressNumberToContinue
+int 21h
+
+mov ah,1
+int 21h
+
+cmp al,31h
+je ViewStockPage
+jmp MainMenu
+ 
+ 
+ 
+ ;;;;;;;;;;;;;;View stock Page
+ViewStockPage:
+call clearscr
+call hashloop
+call movepointertomiddle
+mov ah,9
+lea dx,viewstockstr 
+int 21h
+call newlinecursorzero
+mov ah,9
+lea dx,item1_name
+int 21h
+DecimalPrinter item_1_stock    
+
+call newlinecursorzero
+mov ah,9
+lea dx,item2_name
+int 21h
+DecimalPrinter item_2_stock
+
+call newlinecursorzero
+mov ah,9
+lea dx,item3_name
+int 21h
+DecimalPrinter item_3_stock
+
+call newlinecursorzero
+call hashloop
+mov ah,9
+lea dx, PressHashToMainMenu
+int 21h
+
+mov ah,1
+int 21h
+
+jmp MainMenu
 
 
 

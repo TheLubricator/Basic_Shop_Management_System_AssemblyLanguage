@@ -1,9 +1,26 @@
 .MODEL SMALL
+DecimalPrinter macro var1 ;limit 2 hex bytes
+    mov al,var1
+    mov ah,0
+    mov bl,10
+    div bl
+    mov ch,ah
+    mov cl,al
+    mov dl,cl
+    add dl,30h
+    mov ah,2
+    int 21h
+    mov dl,ch
+    add dl,30h
+    mov ah,2
+    int 21h 
+    endm
  
 .STACK 100H
 
 .DATA  
 spacer db " $"
+dollarendermsg db " dollars$"
 userid db 04Dh,61h,73h,74h,65h,06Dh,61h        
 password db 35h,34h,33h,61h,62h,63h,64h
 userIDinput db 7 dup(?)
@@ -11,7 +28,9 @@ IDinputmsg db "User ID: $"
 passwordinput db 7 dup(?)
 passinputmsg db "Password: $"
 InvalidCredentials db "Invalid Credentials! Press any key to go back to login screen. $" 
-welcome db "Welcome Mastema! These are your options$"
+welcome db "Welcome Mastema! These are your options$" 
+main_menu_cash_register_msg db "Amount in cash_register: $"  
+cash_register db 56
  
 LoginWelcomeMessage db "Welcome to Shop X! Please Login to continue.$"
 .CODE 
@@ -66,7 +85,16 @@ clearscr proc
     
      
     ret
-    clearscr endp
+    clearscr endp  
+newlinecursorzero proc
+    mov ah,2
+    mov dl,0ah ;new line
+    int 21h   
+    mov ah,2
+    mov dl,0dh ; carriage ret
+    int 21h  
+    ret
+    newlinecursorzero endp
 
 MAIN PROC
 
@@ -186,9 +214,21 @@ CorrectAuth:
 MainMenu:
 call clearscr
 call hashloop
-call movepointertomiddle 
-lea dx,welcome
+call movepointertomiddle
+mov ah,9 
+lea dx,welcome  
 int 21h
+call newlinecursorzero 
+
+mov ah,9
+lea dx, main_menu_cash_register_msg
+int 21h
+DecimalPrinter cash_register 
+mov ah,9
+lea dx, dollarendermsg
+int 21h 
+
+
 
 
 

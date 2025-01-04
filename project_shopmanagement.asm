@@ -1,4 +1,8 @@
 .MODEL SMALL
+
+    
+    
+    
 DecimalPrinter macro var1 ;limit 4 hex bytes, 255 decimal
     mov ax,var1
     
@@ -51,6 +55,80 @@ DecimalPrinter macro var1 ;limit 4 hex bytes, 255 decimal
     
     
     endm
+
+HighestSellingItem macro item1,item2,item3
+    mov ax, item1
+    mov bx,item2
+    mov cx,item3 
+    cmp ax,0
+    jne nozero  
+    cmp bx,0
+    jne nozero
+    cmp cx,0
+    jne nozero
+    
+    jmp AbruptEnd
+    nozero:
+    
+    cmp ax,bx
+    jg item1bigger
+    jmp item2bigger
+    item1bigger:
+    cmp ax,cx
+    jg item1biggest
+    jmp item3biggest
+    item2bigger:
+    cmp bx,cx
+    jg item2biggest
+    jmp item3biggest
+    
+    item1biggest:
+    mov ah,9
+    lea dx,biggest_item
+    int 21h
+    mov ah,9
+    lea dx, item1_name
+    int 21h
+    jmp end
+    
+    item2biggest:
+    mov ah,9
+    lea dx,biggest_item
+    int 21h
+    mov ah,9
+    lea dx, item2_name
+    int 21h
+    jmp end 
+    
+    item3biggest:
+    mov ah,9
+    lea dx,biggest_item
+    int 21h
+    mov ah,9
+    lea dx, item3_name
+    int 21h
+    jmp end   
+    
+    AbruptEnd:
+    mov ah,9
+    lea dx,biggest_item
+    int 21h
+    mov ah,9
+    lea dx, init_state
+    int 21h
+    jmp end
+    
+    
+    end:
+    endm
+    
+    
+    
+    
+    
+    
+    
+    
 
 StockAdder macro var1
     mov bx, var1
@@ -248,7 +326,9 @@ main_menu_viewstock db "1.) View Stock$"
 main_menu_AddStock db "2.) Add Stock$"
 main_menu_SellItem db "3.) Sell Products$" 
 main_menu_ViewRevenue db "4.) View Revenue$"
-main_menu_Logout db "5.) Logout$"
+main_menu_Logout db "5.) Logout$"   
+
+main_menu_end_msg db "[!]: Make appropriate backups to prevent data loss during a failure!$"
 
 ; View stock page string
 viewstockstr db "This page displays stock number for each item$" 
@@ -279,8 +359,8 @@ item_1_stock dw 1
 item_2_stock dw 2
 item_3_stock dw 3  
 
-item_1_price dw 25   
-item_2_price dw 50
+item_1_price dw 23   
+item_2_price dw 47
 item_3_price dw 73
 
 item_1_revenue dw 0
@@ -295,6 +375,9 @@ temp db 0
 item1_name db "Item 1$"
 item2_name db "Item 2$"  
 item3_name db "Item 3$"
+;HIGHEST SELLING
+biggest_item db "Highest selling item so far: $"
+init_state db "Zero sale made since system boot!$"
 
 
 
@@ -485,6 +568,7 @@ mov ah,9
 lea dx,welcome  
 int 21h
 call newlinecursorzero 
+call newlinecursorzero
 
 mov ah,9
 lea dx, main_menu_cash_register_msg
@@ -493,7 +577,13 @@ DecimalPrinter cash_register
 mov ah,9
 lea dx, dollarendermsg
 int 21h 
+call newlinecursorzero 
+
+HighestSellingItem item_1_revenue,item_2_revenue,item_3_revenue
 call newlinecursorzero
+call newlinecursorzero
+
+
 mov ah,9
 lea dx, main_menu_viewstock
 int 21h  
@@ -517,7 +607,14 @@ call newlinecursorzero
 mov ah,9
 lea dx, main_menu_Logout   
 int 21h 
- 
+call newlinecursorzero
+
+call newlinecursorzero
+
+
+mov ah,9
+lea dx, main_menu_end_msg
+int 21h 
  
 call newlinecursorzero
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Main menu option end

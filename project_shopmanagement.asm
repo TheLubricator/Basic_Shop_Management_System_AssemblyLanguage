@@ -71,14 +71,18 @@ HighestSellingItem macro item1,item2,item3
     nozero:
     
     cmp ax,bx
-    jg item1bigger
+    push ax
+    jg item1bigger 
+    pop dx
+    push bx
     jmp item2bigger
     item1bigger:
-    cmp ax,cx
+    pop dx
+    cmp dx,cx
     jg item1biggest
     jmp item3biggest
     item2bigger:
-    cmp bx,cx
+    cmp dx,cx
     jg item2biggest
     jmp item3biggest
     
@@ -681,7 +685,15 @@ mov ah,9
 lea dx,arrowpointer
 int 21h
 DecimalPrinter item_3_stock
+call newlinecursorzero
+call newlinecursorzero
 
+
+mov ah,9
+lea dx, main_menu_end_msg
+int 21h                        
+
+                       
 call newlinecursorzero
 call hashloop
 mov ah,9
@@ -730,6 +742,14 @@ int 21h
 mov ah,9
 lea dx,item3_name
 int 21h
+
+call newlinecursorzero
+call newlinecursorzero
+
+
+mov ah,9
+lea dx, main_menu_end_msg
+int 21h  
 
 
 call newlinecursorzero
@@ -1013,7 +1033,15 @@ lea dx,dollarendermsg
 int 21h
 
 
-call newlinecursorzero    
+
+
+call newlinecursorzero
+call newlinecursorzero
+
+
+mov ah,9
+lea dx, main_menu_end_msg
+int 21h    
 call newlinecursorzero
 call hashloop   
 
@@ -1303,7 +1331,15 @@ int 21h
 DecimalPrinter item_3_revenue
 mov ah,9
 lea dx,dollarendermsg
-int 21h
+int 21h 
+
+call newlinecursorzero
+call newlinecursorzero
+
+
+mov ah,9
+lea dx, main_menu_end_msg
+int 21h  
 
 call newlinecursorzero
 call hashloop

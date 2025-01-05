@@ -3,7 +3,7 @@
     
     
     
-DecimalPrinter macro var1 ;limit 4 hex bytes, 255 decimal
+DecimalPrinter macro var1 ;limit 4 hex bytes, 65535 decimal
     mov ax,var1
     
     mov bx,10000 
@@ -58,10 +58,10 @@ DecimalPrinter macro var1 ;limit 4 hex bytes, 255 decimal
 
 HighestSellingItem macro item1,item2,item3
     mov ax, item1
-    mov bx,item2
-    mov cx,item3 
-    cmp ax,0
-    jne nozero  
+    mov bx,item2          ;; Takes item 1 item 2 item 3 revenue value as variables and places them in register
+    mov cx,item3          ;; Firstly it checks if all values are zero (ie no sale made since system boot)
+    cmp ax,0              ;; if at least one item revenue is non zero (all values are initialized as 0 anyway)
+    jne nozero            ;; then the largest value finder code runs, else we jump way down
     cmp bx,0
     jne nozero
     cmp cx,0
@@ -71,13 +71,13 @@ HighestSellingItem macro item1,item2,item3
     nozero:
     
     cmp ax,bx
-    push ax
-    jg item1bigger 
+    push ax               ;; in order to introduce stack, we first push ax into stack, if value in ax is bigger then okay
+    jg item1bigger        ;; but if bx value was bigger than item1bigger conditional jump will be skipped, and we will pop ax, then push bx as it is the largest
     pop dx
     push bx
     jmp item2bigger
     item1bigger:
-    pop dx
+    pop dx           ;;pop the largest value out of stack to register dx to compare again to find largest one
     cmp dx,cx
     jg item1biggest
     jmp item3biggest
@@ -88,7 +88,7 @@ HighestSellingItem macro item1,item2,item3
     
     item1biggest:
     mov ah,9
-    lea dx,biggest_item
+    lea dx,biggest_item           ;; item?biggest jumps all print the biggest item str then the item name [?=itemm number]
     int 21h
     mov ah,9
     lea dx, item1_name
@@ -116,7 +116,7 @@ HighestSellingItem macro item1,item2,item3
     AbruptEnd:
     mov ah,9
     lea dx,biggest_item
-    int 21h
+    int 21h                          ;;if all items revenue is 0, then init_state message is printed
     mov ah,9
     lea dx, init_state
     int 21h
@@ -368,11 +368,11 @@ item_2_price dw 47
 item_3_price dw 73
 
 item_1_revenue dw 0
-item_2_revenue dw 0
+item_2_revenue dw 0        ;;all item revenues are stored in this var, initialized with zeros
 item_3_revenue dw 0  
 
-temp db 0
-
+temp db 0       ;;clear scr procedure interreupts logout choice input since it uses all registers so a variable stores input then clear scr does its job without deleting
+                ;; single char input
 
 
 ;item names
@@ -430,9 +430,9 @@ clearscr proc
     INT 10H
     
     MOV AH,2
-    MOV BH,00
-    MOV DL,00
-    MOV DH,00
+    MOV BH,00 ;; bh indicates page number, 00 indicates page 0 so active page
+    MOV DL,00   ;; dl indicates column number, 0 indicates column 0
+    MOV DH,00    ;; dh indicates row number, 0 indicates row 0 . so bh=dl=dh=0 indicates cursor moved to start of page 0
     INT 10H
     
     
@@ -565,51 +565,51 @@ CorrectAuth:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;Main menu start  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 MainMenu:
-call clearscr
-call hashloop
-call movepointertomiddle
+call clearscr   ;; clear scr clears the screen in order to print everyhting from startt
+call hashloop  ;; prints 70 hashes in loop for decoration
+call movepointertomiddle ;;moves mouse pointer a few chars forward, in order to print heading in the middle
 mov ah,9 
-lea dx,welcome  
+lea dx,welcome      ;;print welcome message
 int 21h
-call newlinecursorzero 
+call newlinecursorzero   ;;carriage return new line given procedure form
 call newlinecursorzero
 
 mov ah,9
-lea dx, main_menu_cash_register_msg
+lea dx, main_menu_cash_register_msg  ;;main maenu cash register string
 int 21h
-DecimalPrinter cash_register 
+DecimalPrinter cash_register  ;;macro prints value in cash register in decimal using macro
 mov ah,9
-lea dx, dollarendermsg
+lea dx, dollarendermsg  ;;writes dollar after number
 int 21h 
 call newlinecursorzero 
 
-HighestSellingItem item_1_revenue,item_2_revenue,item_3_revenue
+HighestSellingItem item_1_revenue,item_2_revenue,item_3_revenue ;;ccalls highest selling macro passing revenue variable of 3 items
 call newlinecursorzero
 call newlinecursorzero
 
 
 mov ah,9
-lea dx, main_menu_viewstock
+lea dx, main_menu_viewstock     ;;option string 1
 int 21h  
 
 call newlinecursorzero
 mov ah,9
-lea dx, main_menu_AddStock  
+lea dx, main_menu_AddStock      ;;option string 2
 int 21h
 
 
 call newlinecursorzero
 mov ah,9
-lea dx, main_menu_SellItem   
+lea dx, main_menu_SellItem       ;;option string 3
 int 21h 
 
 call newlinecursorzero
 mov ah,9
-lea dx, main_menu_ViewRevenue   
+lea dx, main_menu_ViewRevenue      ;;option string 4
 int 21h
 call newlinecursorzero
 mov ah,9
-lea dx, main_menu_Logout   
+lea dx, main_menu_Logout               ;;option string 5
 int 21h 
 call newlinecursorzero
 
@@ -617,35 +617,35 @@ call newlinecursorzero
 
 
 mov ah,9
-lea dx, main_menu_end_msg
+lea dx, main_menu_end_msg           ;;a warning message for decoration purposes
 int 21h 
  
 call newlinecursorzero
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Main menu option end
-call hashloop  
+call hashloop     ; hashloops  marking end of page
 mov ah,9
-lea dx,PressNumberToContinue
+lea dx,PressNumberToContinue    ;; a string prints which will state which option to choose
 int 21h
 
-mov ah,1
+mov ah,1     ;;single char input
 int 21h
 
 cmp al,31h
-je ViewStockPage
+je ViewStockPage    ;;if input is 1
 cmp al,32h
-je AddStockPage 
+je AddStockPage        ;;if input is 2
 
 cmp al,33h
-je SellItemPage  
+je SellItemPage         ;;if input is 3
 
 cmp al,34h
-je ViewRevenue
+je ViewRevenue            ;;if input is4
 cmp al,35h
-je Logout
+je Logout                      ;;if input is 5
 
 
 
-jmp MainMenu
+jmp MainMenu               ;;any other input other than 1-5 will reload main menu [end of main menu]
  
  
  
@@ -1289,29 +1289,29 @@ jmp SellItem3
   ;;;;;START VIEW REVENUE;;;;;;;;;;;;;;;;;;;;;;;
   
 ViewRevenue:
-call clearscr
-call hashloop
-call movepointertomiddle
+call clearscr             ;;clears screen
+call hashloop              ;;prints hashes
+call movepointertomiddle    ;;moves moouse pointer to middle
 mov ah,9
-lea dx,ViewRevenuestr 
+lea dx,ViewRevenuestr     ;;prints header string for this page
 int 21h
 call newlinecursorzero 
 call newlinecursorzero
 mov ah,9
-lea dx,item1_name
+lea dx,item1_name               ;;item 1 name
 int 21h  
 mov ah,9
-lea dx,arrowpointer
+lea dx,arrowpointer           ;; prints an arrow ==>
 int 21h
 
-DecimalPrinter item_1_revenue
+DecimalPrinter item_1_revenue   ;; prints value stored in item no revenue in decimal 
 mov ah,9
-lea dx,dollarendermsg
+lea dx,dollarendermsg         ;;ends numerical value with dollars ie 00010 dollars
 int 21h     
 
 call newlinecursorzero
 mov ah,9
-lea dx,item2_name
+lea dx,item2_name                      ;;similar repetitions
 int 21h 
 mov ah,9
 lea dx,arrowpointer
@@ -1320,14 +1320,14 @@ DecimalPrinter item_2_revenue
 mov ah,9
 lea dx,dollarendermsg
 int 21h
-
+                                            ;;similar
 call newlinecursorzero
 mov ah,9
 lea dx,item3_name
 int 21h   
 mov ah,9
 lea dx,arrowpointer
-int 21h
+int 21h                                           ;;similar
 DecimalPrinter item_3_revenue
 mov ah,9
 lea dx,dollarendermsg
@@ -1338,20 +1338,20 @@ call newlinecursorzero
 
 
 mov ah,9
-lea dx, main_menu_end_msg
+lea dx, main_menu_end_msg      ;;decoration messager
 int 21h  
 
-call newlinecursorzero
+call newlinecursorzero       ;; end of that page
 call hashloop
 mov ah,9
-lea dx, PressHashToMainMenu
+lea dx, PressHashToMainMenu        ;; print string saying we can return pressing a certain key
 int 21h
 
 mov ah,1
 int 21h
-cmp al,23h
-je MainMenu
-jmp ViewRevenue
+cmp al,23h         ;; if the key is #, return to main menu
+je MainMenu            ;; if not reload that page ie prints the whole revenue page again
+jmp ViewRevenue        
 
 
 Logout:

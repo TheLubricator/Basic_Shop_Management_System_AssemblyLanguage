@@ -458,8 +458,9 @@ MOV DS,AX
  
 ; enter your code here
  
-bigbang:
-call hashloop 
+bigbang: 
+call clearscr    ;screen clear procedure,not required under normal circumstances ie sys start
+call hashloop                                                           ;    , but necessary for logout function to clear screen(main menu has its own clear screen call)
 call movepointertomiddle 
 mov ah, 9
 lea dx, LoginWelcomeMessage 
@@ -1363,10 +1364,8 @@ int 21h
 mov ah,1
 int 21h
 
-mov temp,al
-call clearscr 
-mov cl,temp
-cmp cl,79h
+
+cmp al,79h
 je bigbang
 
 jmp MainMenu

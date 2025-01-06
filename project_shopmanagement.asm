@@ -144,7 +144,7 @@ SellItemProcess1 macro price,stock, cash_register, revenue
     mov bx, stock
     cmp bx,0
     je Itemdepleted1 
-    cmp cx,bx
+    cmp cx,bx   ;; cx contains the n value ie no of items
     jg StockExceeded1 
     
     sub bx,cx

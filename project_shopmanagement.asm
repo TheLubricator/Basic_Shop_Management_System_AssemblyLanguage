@@ -61,7 +61,7 @@ HighestSellingItem macro item1,item2,item3
     mov bx,item2          ;; Takes item 1 item 2 item 3 revenue value as variables and places them in register
     mov cx,item3          ;; Firstly it checks if all values are zero (ie no sale made since system boot)
     cmp ax,0              ;; if at least one item revenue is non zero (all values are initialized as 0 anyway)
-    jne nozero            ;; then the largest value finder code runs, else we jump way down
+    jne nozero            ;; then the largest value finder code runs, else we jump way down  to print an error msg
     cmp bx,0
     jne nozero
     cmp cx,0

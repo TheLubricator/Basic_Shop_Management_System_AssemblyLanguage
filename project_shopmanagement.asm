@@ -136,7 +136,7 @@ HighestSellingItem macro item1,item2,item3
 
 StockAdder macro var1
     mov bx, var1
-    add bx,cx
+    add bx,cx       ;; the 2 digit input is stored in cl specifically, but since stock value is word so cx is used (0 has been moved to ch to avoid miscalc)
     mov var1,bx
     endm
 

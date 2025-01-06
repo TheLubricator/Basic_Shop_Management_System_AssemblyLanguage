@@ -81,7 +81,8 @@ HighestSellingItem macro item1,item2,item3
     cmp dx,cx
     jg item1biggest
     jmp item3biggest
-    item2bigger:
+    item2bigger: 
+    pop dx 
     cmp dx,cx
     jg item2biggest
     jmp item3biggest

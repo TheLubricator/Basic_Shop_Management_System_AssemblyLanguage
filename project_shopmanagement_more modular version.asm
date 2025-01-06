@@ -398,7 +398,7 @@ int 21h
 mov ah, 9
 lea dx, passinputmsg
 int 21h
-;start taking userid input
+;start taking pass input
 mov si,0
 
 StartPassinput:

@@ -126,13 +126,6 @@ HighestSellingItem macro item1,item2,item3
     end:
     endm
     
-    
-    
-    
-    
-    
-    
-    
 
 StockAdder macro var1
     mov bx, var1
@@ -140,162 +133,7 @@ StockAdder macro var1
     mov var1,bx
     endm
 
-SellItemProcess1 macro price,stock, cash_register, revenue
-    mov bx, stock
-    cmp bx,0
-    je Itemdepleted1 
-    cmp cx,bx   ;; cx contains the n value ie no of items, total 5 different variables inc ones in macro
-    jg StockExceeded1 
-    
-    sub bx,cx
-    mov stock,bx
-    mov bx, price  
-    mov ax,0
-    priceloop1: 
-    add ax,bx
-    loop priceloop1
-                      ;now ax has total payable price
-    mov bx, cash_register
-    add bx,ax
-    mov cash_register,bx
-    mov bx,revenue
-    add bx,ax
-    mov revenue,bx 
-    jmp endpoint1
-   
-    
-    StockExceeded1:
-    mov ah,9
-    lea dx, stockexceed
-    int 21h 
-    call newlinecursorzero
-    mov ah,9
-    lea dx, presskeytocontinue
-    int 21h 
-    mov ah,1
-    int 21h
-    jmp SellItemPage 
-    
-    Itemdepleted1:
-    mov ah,9
-    lea dx, itemdeplete
-    int 21h 
-    call newlinecursorzero
-    mov ah,9
-    lea dx, presskeytocontinue
-    int 21h 
-    mov ah,1
-    int 21h
-    jmp SellItemPage
-    
-    endpoint1:
-    mov cx,ax ;; in order to print success msg, we move ax to cx to avoid deletion during string printing method
-    endm
 
-SellItemProcess2 macro price,stock, cash_register, revenue
-    mov bx, stock
-    cmp bx,0
-    je Itemdepleted2 
-    cmp cx,bx
-    jg StockExceeded2 
-    
-    sub bx,cx
-    mov stock,bx
-    mov bx, price  
-    mov ax,0
-    priceloop2: 
-    add ax,bx
-    loop priceloop2
-    
-    mov bx, cash_register
-    add bx,ax
-    mov cash_register,bx
-    mov bx,revenue
-    add bx,ax
-    mov revenue,bx 
-    jmp endpoint2
-   
-    
-    StockExceeded2:
-    mov ah,9
-    lea dx, stockexceed
-    int 21h 
-    call newlinecursorzero
-    mov ah,9
-    lea dx, presskeytocontinue
-    int 21h 
-    mov ah,1
-    int 21h
-    jmp SellItemPage 
-    
-    Itemdepleted2:
-    mov ah,9
-    lea dx, itemdeplete
-    int 21h 
-    call newlinecursorzero
-    mov ah,9
-    lea dx, presskeytocontinue
-    int 21h 
-    mov ah,1
-    int 21h
-    jmp SellItemPage
-    
-    endpoint2:
-    mov cx,ax
-    endm    
- 
- 
-SellItemProcess3 macro price,stock, cash_register, revenue
-    mov bx, stock
-    cmp bx,0
-    je Itemdepleted3 
-    cmp cx,bx
-    jg StockExceeded3 
-    
-    sub bx,cx
-    mov stock,bx
-    mov bx, price  
-    mov ax,0
-    priceloop3: 
-    add ax,bx
-    loop priceloop3
-    
-    mov bx, cash_register
-    add bx,ax
-    mov cash_register,bx
-    mov bx,revenue
-    add bx,ax
-    mov revenue,bx 
-    jmp endpoint3
-   
-    
-    StockExceeded3:
-    mov ah,9
-    lea dx, stockexceed
-    int 21h 
-    call newlinecursorzero
-    mov ah,9
-    lea dx, presskeytocontinue
-    int 21h 
-    mov ah,1
-    int 21h
-    jmp SellItemPage 
-    
-    Itemdepleted3:
-    mov ah,9
-    lea dx, itemdeplete
-    int 21h 
-    call newlinecursorzero
-    mov ah,9
-    lea dx, presskeytocontinue
-    int 21h 
-    mov ah,1
-    int 21h
-    jmp SellItemPage
-    
-    endpoint3:
-    mov cx,ax
-    endm 
  
  
 .STACK 100H
@@ -371,8 +209,15 @@ item_1_revenue dw 0
 item_2_revenue dw 0        ;;all item revenues are stored in this var, initialized with zeros
 item_3_revenue dw 0  
 
-temp db 0       ;;clear scr procedure interreupts logout choice input since it uses all registers so a variable stores input then clear scr does its job without deleting
+temp dw 0       ;;holds total price tempoorarilyy
                 ;; single char input
+
+
+;sell process temp var
+
+temp_stock dw 0
+
+
 
 
 ;item names
@@ -447,7 +292,59 @@ newlinecursorzero proc  ;newline carriage return given a procedure form for modu
     mov dl,0dh ; carriage ret
     int 21h  
     ret
-    newlinecursorzero endp
+    newlinecursorzero endp   
+
+SellItemProcedure proc 
+   
+    mov temp_stock, 0
+ 
+   
+    cmp bx,0
+    je Itemdepleted
+    cmp cx,bx
+    jg StockExceed4 
+    sub bx,cx
+    mov temp_stock, bx
+    mov bx,0
+    priceloop:
+    add bx,ax
+    loop priceloop 
+    
+    jmp endpoint
+    StockExceed4:
+    mov ah,9
+    lea dx, stockexceed
+    int 21h 
+    call newlinecursorzero
+    mov ah,9
+    lea dx, presskeytocontinue
+    int 21h 
+    mov ah,1
+    int 21h
+    jmp SellItemPage 
+    
+    Itemdepleted:
+    mov ah,9
+    lea dx, itemdeplete
+    int 21h 
+    call newlinecursorzero
+    mov ah,9
+    lea dx, presskeytocontinue
+    int 21h 
+    mov ah,1
+    int 21h
+    jmp SellItemPage
+    
+    endpoint:
+    mov cx,bx ;; in order to print success msg, we move ax to cx to avoid deletion during string printing method  
+    ret
+    endp
+    
+    
+    
+    
+    
+    
 
 MAIN PROC
 
@@ -1104,18 +1001,35 @@ jge InputErrorSellItem1
 
 call newlinecursorzero
 
-
+mov ax, item_1_price
+mov bx,item_1_stock 
+mov dx,item_1_revenue
  
-SellItemProcess1 item_1_price,item_1_stock,cash_register,item_1_revenue    
+call SellItemProcedure    
 call newlinecursorzero
 mov ah,9
 lea dx, sellsuccess
 int 21h   
-
+mov temp,cx
 DecimalPrinter cx
 mov ah,9
 lea dx, dollarendermsg1
-int 21h 
+int 21h  
+mov cx,temp
+
+mov ax, cash_register 
+add ax,cx
+mov cash_register,ax
+mov ax, item_1_revenue
+add ax,cx
+mov item_1_revenue,ax
+mov ax, item_1_stock
+mov bx,temp_stock
+
+mov item_1_stock,bx
+
+
+ 
 
 call newlinecursorzero
 call hashloop 
@@ -1177,17 +1091,38 @@ jge InputErrorSellItem2
 call newlinecursorzero
 
 
+     
+     
+     
+mov ax, item_2_price
+mov bx,item_2_stock 
+mov dx,item_2_revenue
  
-SellItemProcess2 item_2_price,item_2_stock,cash_register,item_2_revenue    
+call SellItemProcedure    
 call newlinecursorzero
 mov ah,9
 lea dx, sellsuccess
 int 21h   
-
+mov temp,cx
 DecimalPrinter cx
 mov ah,9
 lea dx, dollarendermsg1
-int 21h 
+int 21h  
+mov cx,temp
+
+mov ax, cash_register 
+add ax,cx
+mov cash_register,ax
+mov ax, item_2_revenue
+add ax,cx
+mov item_2_revenue,ax
+mov ax, item_2_stock
+mov bx,temp_stock
+
+mov item_2_stock,bx   
+
+         
+         
 
 call newlinecursorzero
 call hashloop 
@@ -1249,16 +1184,37 @@ call newlinecursorzero
 
 
  
-SellItemProcess3 item_3_price,item_3_stock,cash_register,item_3_revenue    
+
+mov ax, item_3_price
+mov bx,item_3_stock 
+mov dx,item_3_revenue
+ 
+call SellItemProcedure    
 call newlinecursorzero
 mov ah,9
 lea dx, sellsuccess
 int 21h   
-
+mov temp,cx
 DecimalPrinter cx
 mov ah,9
 lea dx, dollarendermsg1
-int 21h 
+int 21h  
+mov cx,temp
+
+mov ax, cash_register 
+add ax,cx
+mov cash_register,ax
+mov ax, item_3_revenue
+add ax,cx
+mov item_3_revenue,ax
+mov ax, item_3_stock
+mov bx,temp_stock
+
+mov item_3_stock,bx
+
+
+
+
 
 call newlinecursorzero
 call hashloop 

@@ -6,17 +6,17 @@
 DecimalPrinter macro var1 ;limit 4 hex bytes, 65535 decimal
     mov ax,var1
     
-    mov bx,10000 
+    mov bx,10000         ;;extracts msb value
     mov dx,0
     div bx
-    mov cx,dx
+    mov cx,dx           ;;stores remainder for further op
     mov dl,al
     add dl,30h
     mov ah,2
     int 21h 
 
     mov ax,cx
-    mov bx,1000  
+    mov bx,1000        ;; extracts new msb again
     mov dx,0
     div bx
     
@@ -27,7 +27,7 @@ DecimalPrinter macro var1 ;limit 4 hex bytes, 65535 decimal
     int 21h
     
     mov ax,cx
-    mov bx,100  
+    mov bx,100            ;;same as before
     mov dx,0
     div bx
     
@@ -37,7 +37,7 @@ DecimalPrinter macro var1 ;limit 4 hex bytes, 65535 decimal
     mov ah,2
     int 21h 
     
-    mov ax,cx
+    mov ax,cx              ;;sameee
     mov bx,10  
     mov dx,0
     div bx
@@ -210,13 +210,13 @@ item_1_revenue dw 0
 item_2_revenue dw 0        ;;all item revenues are stored in this var, initialized with zeros
 item_3_revenue dw 0  
 
-temp dw 0       ;;holds total price tempoorarilyy
-                ;; single char input
+temp dw 0       ;;holds total price temporarily
+                
 
 
 ;sell process temp var
 
-temp_stock dw 0
+temp_stock dw 0   ; a needed temp variable for sell procedure
 
 
 
@@ -232,7 +232,7 @@ init_state db "Zero sale made since system boot!$"
 
 
 .CODE 
-hashloop proc   ;produces 70 hash symbols then two spaces, decoration purpose
+hashloop proc   ;produces 70 hash symbols then two spaces similar to pressing enter on wordprocessor, decoration purpose
     mov cx,70
     hashloop1:
     mov dl, 23h
@@ -255,7 +255,7 @@ hashloop proc   ;produces 70 hash symbols then two spaces, decoration purpose
     ret
     hashloop endp 
 
-movepointertomiddle proc     ; paired with hash, move pointer to middleish to print header msg, decoration PURPOSES
+movepointertomiddle proc     ; paired with hash, move pointer to middleish  (14 pos left to right) to print header msg, decoration PURPOSES
     mov cx,14
     pointerloop:
     mov ah,9
@@ -270,12 +270,12 @@ movepointertomiddle proc     ; paired with hash, move pointer to middleish to pr
 clearscr proc
     
     MOV AX,0600H
-    MOV BH,07
+    MOV BH,07           ;;clears screen
     MOV CX,0000
     MOV DX,184FH
     INT 10H
     
-    MOV AH,2
+    MOV AH,2            ;;this part moves the pointer back to beginning
     MOV BH,00 ;; bh indicates page number, 00 indicates page 0 so active page
     MOV DL,00   ;; dl indicates column number, 0 indicates column 0
     MOV DH,00    ;; dh indicates row number, 0 indicates row 0 . so bh=dl=dh=0 indicates cursor moved to start of page 0
@@ -295,26 +295,26 @@ newlinecursorzero proc  ;newline carriage return given a procedure form for modu
     ret
     newlinecursorzero endp   
 
-SellItemProcedure proc 
-   
-    mov temp_stock, 0
+SellItemProcedure proc       ;;procedure performs sell function
+                          ;; for all cases ax=price per item, bx=no of stock of that item cx=item amount (taken as input) 
+    mov temp_stock, 0      ;; in case any previous action leaves temp_stock to non zero, 0 is moved to reset it
  
    
-    cmp bx,0
+    cmp bx,0               ;;if stock is zero, then prints depletion msg
     je Itemdepleted
     cmp cx,bx
-    jg StockExceed4 
-    sub bx,cx
-    mov temp_stock, bx
-    mov bx,0
+    jg StockExceed4          ;; if item amount>stock then another error, among these two msgs depletion takes precedence
+    sub bx,cx             ;;reduces stock value by total-item no
+    mov temp_stock, bx     ;; stores new value to temporary variable, will be swapped outuside of procedure
+    mov bx,0    ;;bx is reset for other tasks
     priceloop:
-    add bx,ax
+    add bx,ax              ;;explicit loop adds total payable amount to bx, loop will run till cx=0 (as stated cx already contains no of items)
     loop priceloop 
     
-    jmp endpoint
+    jmp endpoint             ;;if all done successfully, jumps to end point
     StockExceed4:
     mov ah,9
-    lea dx, stockexceed
+    lea dx, stockexceed           ;;prints stoock exceed msg, then force jumps to sellitem page again after any key input
     int 21h 
     call newlinecursorzero
     mov ah,9
@@ -327,7 +327,7 @@ SellItemProcedure proc
     Itemdepleted:
     mov ah,9
     lea dx, itemdeplete
-    int 21h 
+    int 21h                            ;;prints depltion msg, then force jumps to sellitem page again after any key input
     call newlinecursorzero
     mov ah,9
     lea dx, presskeytocontinue
@@ -425,8 +425,8 @@ AuthValidation:
 cmp si,7
 jge CorrectAuth
 mov ch,userid[si]
-mov cl,userIDinput[si]  
-cmp ch,cl
+mov cl,userIDinput[si]    ;;using same index no it checks whether values inside the input and storage array for same indices are same or not
+cmp ch,cl                         ;; one mismatch will result auth error
 jne InvalidAuth
 mov ch,password[si]
 mov cl,passwordinput[si]  
@@ -458,7 +458,7 @@ mov ah,1
 int 21h 
 
 call clearscr
-jmp bigbang 
+jmp bigbang  ;;return to login again if invalid
 
 CorrectAuth: 
 
@@ -859,8 +859,8 @@ jmp AddItem3
 
 SellItemPage:   
 
-call clearscr
-call hashloop
+call clearscr   ;;clears screem
+call hashloop     ;;pritns hash
 
 mov ah,9
 lea dx, sellitemstr 
@@ -876,7 +876,7 @@ int 21h
 
 mov ah,9
 lea dx,spacer
-int 21h  
+int 21h                                           ;;option prints, string printer
 
 mov ah,9
 lea dx,arrowpointer
@@ -992,7 +992,7 @@ mov ah,1
 int 21h
 sub al,30h
 add cl,al 
-mov ch,0
+mov ch,0   ;;the two digit values are stored inside cx (cl specifically, but we handle words so 0 is moved to ch)
 
 
 cmp cl,0
@@ -1003,31 +1003,31 @@ jge InputErrorSellItem1
 call newlinecursorzero
 
 mov ax, item_1_price
-mov bx,item_1_stock 
-mov dx,item_1_revenue
+mov bx,item_1_stock        ;;for sellitem procedure to work   item specific prices and stocck value is required to be placed in register
+mov dx,item_1_revenue      ;; inserting revenue was redundant and unnecessary, forgot to omit it, so its just there
  
 call SellItemProcedure    
 call newlinecursorzero
 mov ah,9
 lea dx, sellsuccess
 int 21h   
-mov temp,cx
-DecimalPrinter cx
+mov temp,cx    ;;decimal printer macro messes up value stored inside cx and bx both (bx had the original total amount sum), so its stored in temp var for now 
+DecimalPrinter cx                                ;; could've stored the sum in temp inside the proc too,tho 
 mov ah,9
 lea dx, dollarendermsg1
 int 21h  
-mov cx,temp
+mov cx,temp         ;;retrieves the total summ
 
 mov ax, cash_register 
 add ax,cx
-mov cash_register,ax
+mov cash_register,ax     ;;adds sum to cash register
 mov ax, item_1_revenue
-add ax,cx
+add ax,cx                     ;;adds sum to item revenue
 mov item_1_revenue,ax
 mov ax, item_1_stock
 mov bx,temp_stock
 
-mov item_1_stock,bx
+mov item_1_stock,bx                ;;moves the recalculated stock amount in temp_stock to original stock
 
 
  
@@ -1046,7 +1046,7 @@ InputErrorSellITem1:
 call newlinecursorzero
 mov ah,9
 lea dx, invalidnumber1
-int 21h
+int 21h                          ;;invalid inputs error msg
 call newlinecursorzero 
 mov ah,9
 lea dx, presskeytocontinue
@@ -1101,7 +1101,7 @@ mov dx,item_2_revenue
  
 call SellItemProcedure    
 call newlinecursorzero
-mov ah,9
+mov ah,9                                    ;;;refer to sell item 1 logic for explanation
 lea dx, sellsuccess
 int 21h   
 mov temp,cx
@@ -1192,7 +1192,7 @@ mov dx,item_3_revenue
  
 call SellItemProcedure    
 call newlinecursorzero
-mov ah,9
+mov ah,9                                      ;;;refer to sell item 1 logic for explanation
 lea dx, sellsuccess
 int 21h   
 mov temp,cx
